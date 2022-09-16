@@ -1,6 +1,10 @@
 package io.ronghuiye.mybatis.test;
 
 import io.ronghuiye.mybatis.binding.MapperProxyFactory;
+import io.ronghuiye.mybatis.binding.MapperResistry;
+import io.ronghuiye.mybatis.session.SqlSession;
+import io.ronghuiye.mybatis.session.SqlSessionFactory;
+import io.ronghuiye.mybatis.session.defaults.DefaultSqlSessionFactory;
 import io.ronghuiye.mybatis.test.dao.IUserDao;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -16,21 +20,14 @@ public class ApiTest {
 
     @Test
     public void test_MapperProxyFactory() {
-        MapperProxyFactory<IUserDao> factory = new MapperProxyFactory<>(IUserDao.class);
 
-        Map<String, String> sqlSession = new HashMap<>();
-        sqlSession.put("io.ronghuiye.mybatis.test.dao.IUserDao.queryUserName", "excuted sql queryUserName");
-        IUserDao userDao = factory.newInstance(sqlSession);
-        String result = userDao.queryUserName("id");
-        logger.info(result);
-    }
+        MapperResistry resistry = new MapperResistry();
+        resistry.addMappers("io.ronghuiye.mybatis.test.dao");
 
-    @Test
-    public void test_proxy_class() {
-        IUserDao userDao = (IUserDao)Proxy.newProxyInstance(
-                Thread.currentThread().getContextClassLoader(),
-                new Class[]{IUserDao.class},
-                ((proxy, method, args) -> "proxy excuted!"));
+        SqlSessionFactory sqlSessionFactory = new DefaultSqlSessionFactory(resistry);
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+
+        IUserDao userDao = sqlSession.getMapper(IUserDao.class);
         String result = userDao.queryUserName("id");
         logger.info(result);
     }
