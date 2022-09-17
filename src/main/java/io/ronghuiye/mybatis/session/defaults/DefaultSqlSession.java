@@ -1,14 +1,16 @@
 package io.ronghuiye.mybatis.session.defaults;
 
-import io.ronghuiye.mybatis.binding.MapperResistry;
+import io.ronghuiye.mybatis.binding.MapperRegistry;
+import io.ronghuiye.mybatis.mapping.MappedStatement;
+import io.ronghuiye.mybatis.session.Configuration;
 import io.ronghuiye.mybatis.session.SqlSession;
 
 public class DefaultSqlSession implements SqlSession {
 
-    private MapperResistry mapperResistry;
+    private Configuration configuration;
 
-    public DefaultSqlSession(MapperResistry mapperResistry) {
-        this.mapperResistry = mapperResistry;
+    public DefaultSqlSession(Configuration configuration) {
+        this.configuration = configuration;
     }
 
     @Override
@@ -18,11 +20,17 @@ public class DefaultSqlSession implements SqlSession {
 
     @Override
     public <T> T selectOne(String statement, Object parameter) {
-        return (T) ("Proxyed with statement: " + statement + " params: " + parameter);
+        MappedStatement ms = configuration.getMappedStatement(statement);
+        return (T) ("Proxyed with statement: " + statement + " params: " + parameter + " SQL: " + ms.getSql());
     }
 
     @Override
     public <T> T getMapper(Class<T> type) {
-        return mapperResistry.getMapper(type, this);
+        return configuration.getMapper(type, this);
+    }
+
+    @Override
+    public Configuration getConfiguration() {
+        return configuration;
     }
 }

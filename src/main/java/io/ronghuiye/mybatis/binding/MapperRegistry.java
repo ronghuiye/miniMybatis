@@ -1,13 +1,20 @@
 package io.ronghuiye.mybatis.binding;
 
 import cn.hutool.core.lang.ClassScanner;
+import io.ronghuiye.mybatis.session.Configuration;
 import io.ronghuiye.mybatis.session.SqlSession;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class MapperResistry {
+public class MapperRegistry {
+
+    private Configuration configuration;
+
+    public MapperRegistry(Configuration configuration) {
+        this.configuration = configuration;
+    }
 
     private final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<>();
 

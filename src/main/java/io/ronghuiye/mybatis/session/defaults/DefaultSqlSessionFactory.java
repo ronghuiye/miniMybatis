@@ -1,19 +1,20 @@
 package io.ronghuiye.mybatis.session.defaults;
 
-import io.ronghuiye.mybatis.binding.MapperResistry;
+import io.ronghuiye.mybatis.binding.MapperRegistry;
+import io.ronghuiye.mybatis.session.Configuration;
 import io.ronghuiye.mybatis.session.SqlSession;
 import io.ronghuiye.mybatis.session.SqlSessionFactory;
 
 public class DefaultSqlSessionFactory implements SqlSessionFactory {
 
-    private final MapperResistry mapperResistry;
+    private final Configuration configuration;
 
-    public DefaultSqlSessionFactory(MapperResistry mapperResistry) {
-        this.mapperResistry = mapperResistry;
+    public DefaultSqlSessionFactory(Configuration configuration) {
+        this.configuration = configuration;
     }
 
     @Override
     public SqlSession openSession() {
-        return new DefaultSqlSession(mapperResistry);
+        return new DefaultSqlSession(configuration);
     }
 }

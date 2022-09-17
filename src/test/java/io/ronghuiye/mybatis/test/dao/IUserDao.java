@@ -2,7 +2,6 @@ package io.ronghuiye.mybatis.test.dao;
 
 public interface IUserDao {
 
-    String queryUserName(String uid);
+    String queryUserInfoById(String uId);
 
-    Integer queryUserAge(String uid);
 }
