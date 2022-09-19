@@ -1,7 +1,9 @@
 package io.ronghuiye.mybatis.test.dao;
 
+import io.ronghuiye.mybatis.test.po.User;
+
 public interface IUserDao {
 
-    String queryUserInfoById(String uId);
+    User queryUserInfoById(Long uId);
 
 }
