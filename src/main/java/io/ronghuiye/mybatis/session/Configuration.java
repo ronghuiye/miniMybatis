@@ -4,8 +4,16 @@ import io.ronghuiye.mybatis.binding.MapperRegistry;
 import io.ronghuiye.mybatis.datasource.druid.DruidDataSourceFactory;
 import io.ronghuiye.mybatis.datasource.pooled.PooledDataSourceFactory;
 import io.ronghuiye.mybatis.datasource.unpooled.UnpooledDataSourceFactory;
+import io.ronghuiye.mybatis.executor.Executor;
+import io.ronghuiye.mybatis.executor.SimpleExecutor;
+import io.ronghuiye.mybatis.executor.resultset.DefaultResultSetHandler;
+import io.ronghuiye.mybatis.executor.resultset.ResultSetHandler;
+import io.ronghuiye.mybatis.executor.statement.PreparedStatementHandler;
+import io.ronghuiye.mybatis.executor.statement.StatementHandler;
+import io.ronghuiye.mybatis.mapping.BoundSql;
 import io.ronghuiye.mybatis.mapping.Environment;
 import io.ronghuiye.mybatis.mapping.MappedStatement;
+import io.ronghuiye.mybatis.transaction.Transaction;
 import io.ronghuiye.mybatis.transaction.jdbc.JdbcTransactionFactory;
 import io.ronghuiye.mybatis.type.TypeAliasRegistry;
 
@@ -63,5 +71,17 @@ public class Configuration {
 
     public void setEnvironment(Environment environment) {
         this.environment = environment;
+    }
+
+    public ResultSetHandler newResultSetHandler(Executor executor, MappedStatement statement, BoundSql boundSql) {
+        return new DefaultResultSetHandler(executor, statement, boundSql);
+    }
+
+    public Executor newExecutor(Transaction transaction) {
+        return new SimpleExecutor(this, transaction);
+    }
+
+    public StatementHandler newStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameter, ResultHandler resultHandler, BoundSql boundSql) {
+        return new PreparedStatementHandler(executor, mappedStatement, parameter, resultHandler, boundSql);
     }
 }

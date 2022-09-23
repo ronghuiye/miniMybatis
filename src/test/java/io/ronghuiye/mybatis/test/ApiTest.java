@@ -34,26 +34,9 @@ public class ApiTest {
 
         IUserDao userDao = sqlSession.getMapper(IUserDao.class);
 
-        for (int i = 0; i < 50; i++){
-            User user = userDao.queryUserInfoById(1L);
-            logger.info("result：{}", JSON.toJSONString(user));
-        }
+        User user = userDao.queryUserInfoById(1L);
+        logger.info("result：{}", JSON.toJSONString(user));
 
-    }
-
-    @Test
-    public void test_pooled() throws SQLException, InterruptedException {
-        PooledDataSource pooledDataSource = new PooledDataSource();
-        pooledDataSource.setDriver("com.mysql.jdbc.Driver");
-        pooledDataSource.setUrl("jdbc:mysql://127.0.0.1:3306/mybatis?useUnicode=true");
-        pooledDataSource.setUsername("root");
-        pooledDataSource.setPassword("123456");
-        while (true){
-            Connection connection = pooledDataSource.getConnection();
-            System.out.println(connection);
-            Thread.sleep(1000);
-            connection.close();
-        }
     }
 
 }
