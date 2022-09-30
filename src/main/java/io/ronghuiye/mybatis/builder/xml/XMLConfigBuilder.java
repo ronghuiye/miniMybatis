@@ -16,6 +16,7 @@ import org.dom4j.io.SAXReader;
 import org.xml.sax.InputSource;
 
 import javax.sql.DataSource;
+import java.io.InputStream;
 import java.io.Reader;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -76,39 +77,10 @@ public class XMLConfigBuilder extends BaseBuilder {
         List<Element> mapperList = mappers.elements("mapper");
         for (Element e : mapperList) {
             String resource = e.attributeValue("resource");
-            Reader reader = Resources.getResourceAsReader(resource);
-            SAXReader saxReader = new SAXReader();
-            Document document = saxReader.read(new InputSource(reader));
-            Element root = document.getRootElement();
-            String namespace = root.attributeValue("namespace");
+            InputStream inputStream = Resources.getResourceAsStream(resource);
 
-            List<Element> selectNodes = root.elements("select");
-            for (Element node : selectNodes) {
-                String id = node.attributeValue("id");
-                String parameterType = node.attributeValue("parameterType");
-                String resultType = node.attributeValue("resultType");
-                String sql = node.getText();
-
-                Map<Integer, String> parameter = new HashMap<>();
-                Pattern pattern = Pattern.compile("(#\\{(.*?)})");
-                Matcher matcher = pattern.matcher(sql);
-                for (int i = 1; matcher.find(); i++) {
-                    String g1 = matcher.group(1);
-                    String g2 = matcher.group(2);
-                    parameter.put(i, g2);
-                    sql = sql.replace(g1, "?");
-                }
-
-                String msId = namespace + "." + id;
-                String nodeName = node.getName();
-                SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
-
-                BoundSql boundSql = new BoundSql(sql, parameter, parameterType, resultType);
-                MappedStatement mappedStatement = new MappedStatement.Builder(configuration, msId, sqlCommandType, boundSql).build();
-                configuration.addMappedStatement(mappedStatement);
-            }
-
-            configuration.addMapper(Resources.classForName(namespace));
+            XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource);
+            mapperParser.parse();
         }
     }
 

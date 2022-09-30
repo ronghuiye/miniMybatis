@@ -12,21 +12,18 @@ import java.util.List;
 public class DefaultResultSetHandler implements ResultSetHandler{
 
     private final BoundSql boundSql;
+    private final MappedStatement mappedStatement;
 
     public DefaultResultSetHandler(Executor executor, MappedStatement mappedStatement, BoundSql boundSql) {
         this.boundSql = boundSql;
+        this.mappedStatement = mappedStatement;
     }
 
     @Override
     public <E> List<E> handleResultSets(Statement statement) throws SQLException {
         ResultSet resultSet = statement.getResultSet();
 
-        try {
-            return result2Obj(resultSet, Class.forName(boundSql.getResultType()));
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return result2Obj(resultSet, mappedStatement.getResultType());
     }
 
     private <T> List<T> result2Obj(ResultSet resultSet, Class<?> clazz) {
