@@ -4,14 +4,19 @@ import io.ronghuiye.mybatis.mapping.ParameterMapping;
 import io.ronghuiye.mybatis.mapping.SqlSource;
 import io.ronghuiye.mybatis.parsing.GenericTokenParser;
 import io.ronghuiye.mybatis.parsing.TokenHandler;
+import io.ronghuiye.mybatis.reflection.MetaClass;
 import io.ronghuiye.mybatis.reflection.MetaObject;
 import io.ronghuiye.mybatis.session.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class SqlSourceBuilder extends BaseBuilder {
+
+    private static Logger logger = LoggerFactory.getLogger(SqlSourceBuilder.class);
 
     private static final String parameterProperties = "javaType,jdbcType,mode,numericScale,resultMap,typeHandler,jdbcTypeName";
 
@@ -51,7 +56,21 @@ public class SqlSourceBuilder extends BaseBuilder {
         private ParameterMapping buildParameterMapping(String content) {
             Map<String, String> propertiesMap = new ParameterExpression(content);
             String property = propertiesMap.get("property");
-            Class<?> propertyType = parameterType;
+            Class<?> propertyType;
+            if (typeHandlerRegistry.hasTypeHandler(parameterType)) {
+                propertyType = parameterType;
+            } else if (property != null) {
+                MetaClass metaClass = MetaClass.forClass(parameterType);
+                if (metaClass.hasGetter(property)) {
+                    propertyType = metaClass.getGetterType(property);
+                } else {
+                    propertyType = Object.class;
+                }
+            } else {
+                propertyType = Object.class;
+            }
+
+            logger.info("property: {} propertyType: {}", property, propertyType);
             ParameterMapping.Builder builder = new ParameterMapping.Builder(configuration, property, propertyType);
             return builder.build();
         }

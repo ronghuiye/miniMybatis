@@ -5,11 +5,23 @@ import java.util.Date;
 public class User {
 
     private Long id;
-    private String userId;          // 用户ID
+    private String userId;
     private String userName;
-    private String userHead;        // 头像
-    private Date createTime;        // 创建时间
-    private Date updateTime;        // 更新时间
+    private String userHead;
+    private Date createTime;
+    private Date updateTime;
+
+    public User(Long id, String userId) {
+        this.id = id;
+        this.userId = userId;
+    }
+
+    public User(Long id) {
+        this.id = id;
+    }
+
+    public User() {
+    }
 
     public Long getId() {
         return id;

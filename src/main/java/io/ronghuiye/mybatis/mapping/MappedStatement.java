@@ -1,5 +1,6 @@
 package io.ronghuiye.mybatis.mapping;
 
+import io.ronghuiye.mybatis.scripting.LanguageDriver;
 import io.ronghuiye.mybatis.session.Configuration;
 
 import java.util.Map;
@@ -12,6 +13,7 @@ public class MappedStatement {
 
     private SqlSource sqlSource;
     Class<?> resultType;
+    private LanguageDriver lang;
 
     MappedStatement() {
         // constructor disabled
@@ -27,6 +29,7 @@ public class MappedStatement {
             mappedStatement.sqlCommandType = sqlCommandType;
             mappedStatement.sqlSource = sqlSource;
             mappedStatement.resultType = resultType;
+            mappedStatement.lang = configuration.getDefaultScriptingLanguageInstance();
         }
 
         public MappedStatement build() {
@@ -67,5 +70,9 @@ public class MappedStatement {
 
     public Class<?> getResultType() {
         return resultType;
+    }
+
+    public LanguageDriver getLang() {
+        return lang;
     }
 }

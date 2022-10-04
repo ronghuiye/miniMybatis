@@ -6,6 +6,7 @@ import io.ronghuiye.mybatis.datasource.pooled.PooledDataSourceFactory;
 import io.ronghuiye.mybatis.datasource.unpooled.UnpooledDataSourceFactory;
 import io.ronghuiye.mybatis.executor.Executor;
 import io.ronghuiye.mybatis.executor.SimpleExecutor;
+import io.ronghuiye.mybatis.executor.parameter.ParameterHandler;
 import io.ronghuiye.mybatis.executor.resultset.DefaultResultSetHandler;
 import io.ronghuiye.mybatis.executor.resultset.ResultSetHandler;
 import io.ronghuiye.mybatis.executor.statement.PreparedStatementHandler;
@@ -18,6 +19,7 @@ import io.ronghuiye.mybatis.reflection.factory.DefaultObjectFactory;
 import io.ronghuiye.mybatis.reflection.factory.ObjectFactory;
 import io.ronghuiye.mybatis.reflection.wrapper.DefaultObjectWrapperFactory;
 import io.ronghuiye.mybatis.reflection.wrapper.ObjectWrapperFactory;
+import io.ronghuiye.mybatis.scripting.LanguageDriver;
 import io.ronghuiye.mybatis.scripting.LanguageDriverRegistry;
 import io.ronghuiye.mybatis.scripting.xmltags.XMLLanguageDriver;
 import io.ronghuiye.mybatis.transaction.Transaction;
@@ -128,5 +130,14 @@ public class Configuration {
 
     public LanguageDriverRegistry getLanguageRegistry() {
         return languageRegistry;
+    }
+
+    public ParameterHandler newParameterHandler(MappedStatement mappedStatement, Object parameterObj, BoundSql boundSql) {
+        ParameterHandler parameterHandler = mappedStatement.getLang().createParameterHandler(mappedStatement, parameterObj, boundSql);
+        return parameterHandler;
+    }
+
+    public LanguageDriver getDefaultScriptingLanguageInstance() {
+        return languageRegistry.getDefaultDriver();
     }
 }

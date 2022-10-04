@@ -2,6 +2,8 @@ package io.ronghuiye.mybatis.mapping;
 
 import io.ronghuiye.mybatis.session.Configuration;
 import io.ronghuiye.mybatis.type.JdbcType;
+import io.ronghuiye.mybatis.type.TypeHandler;
+import io.ronghuiye.mybatis.type.TypeHandlerRegistry;
 
 public class ParameterMapping {
 
@@ -12,6 +14,8 @@ public class ParameterMapping {
     private Class<?> javaType = Object.class;
 
     private JdbcType jdbcType;
+
+    private TypeHandler<?> typeHandler;
 
     private ParameterMapping() {}
 
@@ -36,6 +40,11 @@ public class ParameterMapping {
         }
 
         public ParameterMapping build() {
+            if (parameterMapping.typeHandler == null && parameterMapping.javaType != null) {
+                Configuration configuration = parameterMapping.configuration;
+                TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
+                parameterMapping.typeHandler = typeHandlerRegistry.getTypeHandler(parameterMapping.javaType, parameterMapping.jdbcType);
+            }
             return parameterMapping;
         }
 
@@ -55,5 +64,9 @@ public class ParameterMapping {
 
     public JdbcType getJdbcType() {
         return jdbcType;
+    }
+
+    public TypeHandler<?> getTypeHandler() {
+        return typeHandler;
     }
 }

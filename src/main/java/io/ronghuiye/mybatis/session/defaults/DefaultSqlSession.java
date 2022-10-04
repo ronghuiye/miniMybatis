@@ -1,5 +1,6 @@
 package io.ronghuiye.mybatis.session.defaults;
 
+import com.alibaba.fastjson.JSON;
 import io.ronghuiye.mybatis.binding.MapperRegistry;
 import io.ronghuiye.mybatis.executor.Executor;
 import io.ronghuiye.mybatis.mapping.BoundSql;
@@ -7,6 +8,8 @@ import io.ronghuiye.mybatis.mapping.Environment;
 import io.ronghuiye.mybatis.mapping.MappedStatement;
 import io.ronghuiye.mybatis.session.Configuration;
 import io.ronghuiye.mybatis.session.SqlSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.sql.*;
@@ -14,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultSqlSession implements SqlSession {
+
+    private Logger logger = LoggerFactory.getLogger(DefaultSqlSession.class);
 
     private Configuration configuration;
     private Executor executor;
@@ -30,6 +35,8 @@ public class DefaultSqlSession implements SqlSession {
 
     @Override
     public <T> T selectOne(String statement, Object parameter) {
+
+        logger.info("statement: {} parameter:{}", statement, JSON.toJSONString(parameter));
         MappedStatement ms = configuration.getMappedStatement(statement);
         List<T> list = executor.query(ms, parameter, Executor.NO_RESULT_HANDLER, ms.getSqlSource().getBoundSql(parameter));
         return list.get(0);
