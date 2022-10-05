@@ -1,5 +1,6 @@
 package io.ronghuiye.mybatis.session;
 
 public interface ResultHandler {
-    void handleResult();
+
+    void handleResult(ResultContext resultcontext);
 }

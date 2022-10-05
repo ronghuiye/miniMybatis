@@ -7,6 +7,7 @@ import io.ronghuiye.mybatis.mapping.BoundSql;
 import io.ronghuiye.mybatis.mapping.Environment;
 import io.ronghuiye.mybatis.mapping.MappedStatement;
 import io.ronghuiye.mybatis.session.Configuration;
+import io.ronghuiye.mybatis.session.RowBounds;
 import io.ronghuiye.mybatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ public class DefaultSqlSession implements SqlSession {
 
         logger.info("statement: {} parameter:{}", statement, JSON.toJSONString(parameter));
         MappedStatement ms = configuration.getMappedStatement(statement);
-        List<T> list = executor.query(ms, parameter, Executor.NO_RESULT_HANDLER, ms.getSqlSource().getBoundSql(parameter));
+        List<T> list = executor.query(ms, parameter, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER, ms.getSqlSource().getBoundSql(parameter));
         return list.get(0);
     }
 

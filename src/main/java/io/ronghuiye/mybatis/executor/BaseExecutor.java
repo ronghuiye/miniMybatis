@@ -4,6 +4,7 @@ import io.ronghuiye.mybatis.mapping.BoundSql;
 import io.ronghuiye.mybatis.mapping.MappedStatement;
 import io.ronghuiye.mybatis.session.Configuration;
 import io.ronghuiye.mybatis.session.ResultHandler;
+import io.ronghuiye.mybatis.session.RowBounds;
 import io.ronghuiye.mybatis.transaction.Transaction;
 import org.slf4j.LoggerFactory;
 
@@ -27,14 +28,14 @@ public abstract class BaseExecutor implements Executor{
     }
 
     @Override
-    public <E> List<E> query(MappedStatement ms, Object parameter, ResultHandler resultHandler, BoundSql boundSql) {
+    public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
         if (closed) {
             throw new RuntimeException("Error");
         }
-        return doQuery(ms, parameter, resultHandler, boundSql);
+        return doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
     }
 
-    protected abstract <E> List<E> doQuery(MappedStatement ms, Object parameter, ResultHandler resultHandler, BoundSql boundSql);
+    protected abstract <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql);
 
     @Override
     public Transaction getTransaction() {

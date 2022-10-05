@@ -5,6 +5,7 @@ import io.ronghuiye.mybatis.mapping.BoundSql;
 import io.ronghuiye.mybatis.mapping.MappedStatement;
 import io.ronghuiye.mybatis.session.Configuration;
 import io.ronghuiye.mybatis.session.ResultHandler;
+import io.ronghuiye.mybatis.session.RowBounds;
 import io.ronghuiye.mybatis.transaction.Transaction;
 
 import java.sql.Connection;
@@ -18,10 +19,10 @@ public class SimpleExecutor extends BaseExecutor{
     }
 
     @Override
-    protected <E> List<E> doQuery(MappedStatement ms, Object parameter, ResultHandler resultHandler, BoundSql boundSql) {
+    protected <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
         try {
             Configuration configuration = ms.getConfiguration();
-            StatementHandler handler = configuration.newStatementHandler(this, ms, parameter, resultHandler, boundSql);
+            StatementHandler handler = configuration.newStatementHandler(this, ms, parameter, rowBounds, resultHandler, boundSql);
             Connection connection = transaction.getConnection();
             Statement statement = handler.prepare(connection);
             handler.parameterize(statement);

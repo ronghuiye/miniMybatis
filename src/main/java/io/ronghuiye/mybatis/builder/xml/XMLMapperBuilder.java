@@ -1,5 +1,6 @@
 package io.ronghuiye.mybatis.builder.xml;
 
+import io.ronghuiye.mybatis.binding.MapperBuilderAssistant;
 import io.ronghuiye.mybatis.builder.BaseBuilder;
 import io.ronghuiye.mybatis.io.Resources;
 import io.ronghuiye.mybatis.session.Configuration;
@@ -13,8 +14,8 @@ import java.util.List;
 
 public class XMLMapperBuilder extends BaseBuilder {
     private Element element;
+    private MapperBuilderAssistant builderAssistant;
     private String resource;
-    private String currentNamespace;
 
     public XMLMapperBuilder(InputStream inputStream, Configuration configuration, String resource) throws DocumentException {
         this(new SAXReader().read(inputStream), configuration, resource);
@@ -22,6 +23,7 @@ public class XMLMapperBuilder extends BaseBuilder {
 
     private XMLMapperBuilder(Document document, Configuration configuration, String resource) {
         super(configuration);
+        this.builderAssistant = new MapperBuilderAssistant(configuration, resource);
         this.element = document.getRootElement();
         this.resource = resource;
     }
@@ -30,22 +32,23 @@ public class XMLMapperBuilder extends BaseBuilder {
         if (!configuration.isResourceLoaded(resource)) {
             configurationElement(element);
             configuration.addLoadedResource(resource);
-            configuration.addMapper(Resources.classForName(currentNamespace));
+            configuration.addMapper(Resources.classForName(builderAssistant.getCurrentNamespace()));
         }
     }
 
     private void configurationElement(Element element) {
-        currentNamespace = element.attributeValue("namespace");
-        if (currentNamespace.equals("")) {
+        String namespace = element.attributeValue("namespace");
+        if (namespace.equals("")) {
             throw new RuntimeException("Mapper's namespace cannot be empty");
         }
+        builderAssistant.setCurrentNamespace(namespace);
 
         buildStatementFromContext(element.elements("select"));
     }
 
     private void buildStatementFromContext(List<Element> list) {
         for (Element element : list) {
-            final XMLStatementBuilder statementParser = new XMLStatementBuilder(configuration, element, currentNamespace);
+            final XMLStatementBuilder statementParser = new XMLStatementBuilder(configuration, builderAssistant, element);
             statementParser.parseStatementNode();
         }
     }

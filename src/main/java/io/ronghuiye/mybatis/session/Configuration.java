@@ -96,16 +96,16 @@ public class Configuration {
         this.environment = environment;
     }
 
-    public ResultSetHandler newResultSetHandler(Executor executor, MappedStatement statement, BoundSql boundSql) {
-        return new DefaultResultSetHandler(executor, statement, boundSql);
+    public ResultSetHandler newResultSetHandler(Executor executor, MappedStatement statement, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
+        return new DefaultResultSetHandler(executor, statement, resultHandler, rowBounds, boundSql);
     }
 
     public Executor newExecutor(Transaction transaction) {
         return new SimpleExecutor(this, transaction);
     }
 
-    public StatementHandler newStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameter, ResultHandler resultHandler, BoundSql boundSql) {
-        return new PreparedStatementHandler(executor, mappedStatement, parameter, resultHandler, boundSql);
+    public StatementHandler newStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
+        return new PreparedStatementHandler(executor, mappedStatement, parameter, rowBounds, resultHandler, boundSql);
     }
 
     public String getDatabaseId() {
@@ -139,5 +139,9 @@ public class Configuration {
 
     public LanguageDriver getDefaultScriptingLanguageInstance() {
         return languageRegistry.getDefaultDriver();
+    }
+
+    public ObjectFactory getObjectFactory() {
+        return objectFactory;
     }
 }
