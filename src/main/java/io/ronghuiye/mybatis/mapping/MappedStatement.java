@@ -21,6 +21,10 @@ public class MappedStatement {
         // constructor disabled
     }
 
+    public BoundSql getBoundSql(Object parameterObject) {
+        return sqlSource.getBoundSql(parameterObject);
+    }
+
     public static class Builder {
 
         private MappedStatement mappedStatement = new MappedStatement();

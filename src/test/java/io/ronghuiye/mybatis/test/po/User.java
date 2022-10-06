@@ -11,6 +11,12 @@ public class User {
     private Date createTime;
     private Date updateTime;
 
+    public User(Long id, String userId, String userName) {
+        this.id = id;
+        this.userId = userId;
+        this.userName = userName;
+    }
+
     public User(Long id, String userId) {
         this.id = id;
         this.userId = userId;

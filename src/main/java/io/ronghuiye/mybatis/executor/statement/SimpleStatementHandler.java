@@ -7,6 +7,7 @@ import io.ronghuiye.mybatis.session.ResultHandler;
 import io.ronghuiye.mybatis.session.RowBounds;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
@@ -32,5 +33,12 @@ public class SimpleStatementHandler extends BaseStatementHandler{
         String sql = boundSql.getSql();
         statement.execute(sql);
         return resultSetHandler.handleResultSets(statement);
+    }
+
+    @Override
+    public int update(Statement statement) throws SQLException {
+        String sql = boundSql.getSql();
+        statement.execute(sql);
+        return statement.getUpdateCount();
     }
 }
