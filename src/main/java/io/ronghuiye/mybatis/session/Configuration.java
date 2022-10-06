@@ -14,6 +14,7 @@ import io.ronghuiye.mybatis.executor.statement.StatementHandler;
 import io.ronghuiye.mybatis.mapping.BoundSql;
 import io.ronghuiye.mybatis.mapping.Environment;
 import io.ronghuiye.mybatis.mapping.MappedStatement;
+import io.ronghuiye.mybatis.mapping.ResultMap;
 import io.ronghuiye.mybatis.reflection.MetaObject;
 import io.ronghuiye.mybatis.reflection.factory.DefaultObjectFactory;
 import io.ronghuiye.mybatis.reflection.factory.ObjectFactory;
@@ -39,6 +40,7 @@ public class Configuration {
     protected MapperRegistry mapperRegistry = new MapperRegistry(this);
 
     protected final Map<String, MappedStatement> mappedStatements = new HashMap<>();
+    protected final Map<String, ResultMap> resultMaps = new HashMap<>();
 
     protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
     protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
@@ -143,5 +145,13 @@ public class Configuration {
 
     public ObjectFactory getObjectFactory() {
         return objectFactory;
+    }
+
+    public ResultMap getResultMap(String id) {
+        return resultMaps.get(id);
+    }
+
+    public void addResultMap(ResultMap resultMap) {
+        resultMaps.put(resultMap.getId(), resultMap);
     }
 }

@@ -1,10 +1,6 @@
-package io.ronghuiye.mybatis.binding;
+package io.ronghuiye.mybatis.builder;
 
-import io.ronghuiye.mybatis.builder.BaseBuilder;
-import io.ronghuiye.mybatis.mapping.MappedStatement;
-import io.ronghuiye.mybatis.mapping.ResultMap;
-import io.ronghuiye.mybatis.mapping.SqlCommandType;
-import io.ronghuiye.mybatis.mapping.SqlSource;
+import io.ronghuiye.mybatis.mapping.*;
 import io.ronghuiye.mybatis.scripting.LanguageDriver;
 import io.ronghuiye.mybatis.session.Configuration;
 
@@ -34,7 +30,14 @@ public class MapperBuilderAssistant extends BaseBuilder {
             return null;
         }
         if (isReference) {
-            if(base.contains(".")) return base;
+            if (base.contains(".")) return base;
+        } else {
+            if (base.startsWith(currentNamespace + ".")) {
+                return base;
+            }
+            if (base.contains(".")) {
+                throw new RuntimeException("Dots are not allowed in element names, please remove it from " + base);
+            }
         }
 
         return currentNamespace + "." + base;
@@ -65,7 +68,10 @@ public class MapperBuilderAssistant extends BaseBuilder {
 
         List<ResultMap> resultMaps = new ArrayList<>();
         if (resultMap != null) {
-
+            String[] resultMapNames = resultMap.split(",");
+            for (String resultMapName : resultMapNames) {
+                resultMaps.add(configuration.getResultMap(resultMapName.trim()));
+            }
         } else if (resultType != null) {
             ResultMap.Builder inlineResultMapBuilder = new ResultMap.Builder(
                     configuration,
@@ -75,5 +81,12 @@ public class MapperBuilderAssistant extends BaseBuilder {
             resultMaps.add(inlineResultMapBuilder.build());
         }
         statementBuilder.resultMaps(resultMaps);
+    }
+
+    public ResultMap addResultMap(String id, Class<?> type, List<ResultMapping> resultMappings) {
+        ResultMap.Builder inlineResultMapBuilder = new ResultMap.Builder(configuration, id, type, resultMappings);
+        ResultMap resultMap = inlineResultMapBuilder.build();
+        configuration.addResultMap(resultMap);
+        return resultMap;
     }
 }

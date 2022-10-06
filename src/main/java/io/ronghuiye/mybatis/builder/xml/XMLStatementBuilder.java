@@ -1,20 +1,13 @@
 package io.ronghuiye.mybatis.builder.xml;
 
-import io.ronghuiye.mybatis.binding.MapperBuilderAssistant;
+import io.ronghuiye.mybatis.builder.MapperBuilderAssistant;
 import io.ronghuiye.mybatis.builder.BaseBuilder;
-import io.ronghuiye.mybatis.io.Resources;
-import io.ronghuiye.mybatis.mapping.MappedStatement;
 import io.ronghuiye.mybatis.mapping.SqlCommandType;
 import io.ronghuiye.mybatis.mapping.SqlSource;
 import io.ronghuiye.mybatis.scripting.LanguageDriver;
 import io.ronghuiye.mybatis.session.Configuration;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 
-import java.io.InputStream;
-import java.util.List;
 import java.util.Locale;
 
 public class XMLStatementBuilder extends BaseBuilder {

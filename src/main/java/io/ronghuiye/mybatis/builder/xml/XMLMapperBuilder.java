@@ -1,6 +1,6 @@
 package io.ronghuiye.mybatis.builder.xml;
 
-import io.ronghuiye.mybatis.binding.MapperBuilderAssistant;
+import io.ronghuiye.mybatis.builder.MapperBuilderAssistant;
 import io.ronghuiye.mybatis.builder.BaseBuilder;
 import io.ronghuiye.mybatis.io.Resources;
 import io.ronghuiye.mybatis.session.Configuration;

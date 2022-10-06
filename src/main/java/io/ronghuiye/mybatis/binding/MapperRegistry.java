@@ -1,6 +1,7 @@
 package io.ronghuiye.mybatis.binding;
 
 import cn.hutool.core.lang.ClassScanner;
+import io.ronghuiye.mybatis.builder.annotation.MapperAnnotationBuilder;
 import io.ronghuiye.mybatis.session.Configuration;
 import io.ronghuiye.mybatis.session.SqlSession;
 
@@ -40,6 +41,9 @@ public class MapperRegistry {
                 throw new RuntimeException("Type " + type + " is already known to the MapperRegistry.");
             }
             knownMappers.put(type, new MapperProxyFactory<>(type));
+
+            MapperAnnotationBuilder parser = new MapperAnnotationBuilder(configuration, type);
+            parser.parse();
         }
     }
 
