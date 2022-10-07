@@ -2,6 +2,7 @@ package io.ronghuiye.mybatis.builder;
 
 import io.ronghuiye.mybatis.session.Configuration;
 import io.ronghuiye.mybatis.type.TypeAliasRegistry;
+import io.ronghuiye.mybatis.type.TypeHandler;
 import io.ronghuiye.mybatis.type.TypeHandlerRegistry;
 
 public abstract class BaseBuilder {
@@ -23,4 +24,24 @@ public abstract class BaseBuilder {
     protected Class<?> resolveAlias(String alias) {
         return typeAliasRegistry.resolveAlias(alias);
     }
+
+    protected Class<?> resolveClass(String alias) {
+        if (alias == null) {
+            return null;
+        }
+        try {
+            return resolveAlias(alias);
+        } catch (Exception e) {
+            throw new RuntimeException("Error resolving class. Cause: " + e, e);
+        }
+    }
+
+    protected TypeHandler<?> resolveTypeHandler(Class<?> javaType, Class<? extends TypeHandler<?>> typeHandlerType) {
+        if (typeHandlerType == null) {
+            return null;
+        }
+
+        return typeHandlerRegistry.getMappingTypeHandler(typeHandlerType);
+    }
 }
+

@@ -24,6 +24,8 @@ import java.util.Locale;
 
 public class DefaultResultSetHandler implements ResultSetHandler{
 
+    private static final Object NO_VALUE = new Object();
+
     private final Configuration configuration;
     private final MappedStatement mappedStatement;
     private final RowBounds rowBounds;
@@ -103,6 +105,7 @@ public class DefaultResultSetHandler implements ResultSetHandler{
         if (resultObj != null && !typeHandlerRegistry.hasTypeHandler(resultMap.getType())) {
             final MetaObject metaObject = configuration.newMetaObject(resultObj);
             applyAutomaticMappings(rsw, resultMap, metaObject, null);
+            applyPropertyMappings(rsw, resultMap, metaObject, null);
         }
         return resultObj;
     }
@@ -146,6 +149,25 @@ public class DefaultResultSetHandler implements ResultSetHandler{
                     if (value != null || !propertyType.isPrimitive()) {
                         metaObject.setValue(property, value);
                     }
+                }
+            }
+        }
+        return foundValues;
+    }
+
+    private boolean applyPropertyMappings(ResultSetWrapper rsw, ResultMap resultMap, MetaObject metaObject, String columnPrefix) throws SQLException {
+        final List<String> mappedColumnNames = rsw.getMappedColumnNames(resultMap, columnPrefix);
+        boolean foundValues = false;
+        final List<ResultMapping> propertyMappings = resultMap.getPropertyResultMappings();
+        for (ResultMapping propertyMapping : propertyMappings) {
+            final String column = propertyMapping.getColumn();
+            if (column != null && mappedColumnNames.contains(column.toUpperCase(Locale.ENGLISH))) {
+                final TypeHandler<?> typeHandler = propertyMapping.getTypeHandler();
+                Object value = typeHandler.getResult(rsw.getResultSet(), column);
+                final String property = propertyMapping.getProperty();
+                if (value != NO_VALUE && property != null && value != null) {
+                    metaObject.setValue(property, value);
+                    foundValues = true;
                 }
             }
         }
