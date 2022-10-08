@@ -10,4 +10,6 @@ public interface TypeHandler<T> {
 
     T getResult(ResultSet rs, String columnName) throws SQLException;
 
+    T getResult(ResultSet rs, int columnIndex) throws SQLException;
+
 }

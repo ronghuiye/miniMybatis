@@ -1,6 +1,7 @@
 package io.ronghuiye.mybatis.executor.statement;
 
 import io.ronghuiye.mybatis.executor.Executor;
+import io.ronghuiye.mybatis.executor.keygen.KeyGenerator;
 import io.ronghuiye.mybatis.executor.parameter.ParameterHandler;
 import io.ronghuiye.mybatis.executor.resultset.ResultSetHandler;
 import io.ronghuiye.mybatis.mapping.BoundSql;
@@ -32,6 +33,7 @@ public abstract class BaseStatementHandler implements StatementHandler{
         this.mappedStatement = mappedStatement;
         this.rowBounds = rowBounds;
         if (boundSql == null) {
+            generateKeys(parameterObject);
             boundSql = mappedStatement.getBoundSql(parameterObject);
         }
         this.boundSql = boundSql;
@@ -57,4 +59,8 @@ public abstract class BaseStatementHandler implements StatementHandler{
 
     protected abstract Statement instantiateStatement(Connection connection) throws SQLException;
 
+    protected void generateKeys(Object parameter) {
+        KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
+        keyGenerator.processBefore(executor, mappedStatement, null, parameter);
+    }
 }

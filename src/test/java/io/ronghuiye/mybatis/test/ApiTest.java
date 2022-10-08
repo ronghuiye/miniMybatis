@@ -1,20 +1,25 @@
 package io.ronghuiye.mybatis.test;
 
 import com.alibaba.fastjson.JSON;
+import io.ronghuiye.mybatis.builder.xml.XMLConfigBuilder;
+import io.ronghuiye.mybatis.executor.Executor;
 import io.ronghuiye.mybatis.io.Resources;
-import io.ronghuiye.mybatis.session.SqlSession;
-import io.ronghuiye.mybatis.session.SqlSessionFactory;
-import io.ronghuiye.mybatis.session.SqlSessionFactoryBuilder;
+import io.ronghuiye.mybatis.mapping.Environment;
+import io.ronghuiye.mybatis.session.*;
+import io.ronghuiye.mybatis.session.defaults.DefaultSqlSession;
 import io.ronghuiye.mybatis.test.dao.IActivityDao;
 import io.ronghuiye.mybatis.test.dao.IUserDao;
 import io.ronghuiye.mybatis.test.po.Activity;
 import io.ronghuiye.mybatis.test.po.User;
+import io.ronghuiye.mybatis.transaction.Transaction;
+import io.ronghuiye.mybatis.transaction.TransactionFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.util.List;
 
 public class ApiTest {
@@ -95,6 +100,48 @@ public class ApiTest {
         IActivityDao dao = sqlSession.getMapper(IActivityDao.class);
         Activity res = dao.queryActivityById(100001L);
         logger.info("result：{}", JSON.toJSONString(res));
+    }
+
+    @Test
+    public void test_insert() {
+        IActivityDao dao = sqlSession.getMapper(IActivityDao.class);
+
+        Activity activity = new Activity();
+        activity.setActivityId(10004L);
+        activity.setActivityName("test");
+        activity.setActivityDesc("test insert");
+        activity.setCreator("xiaofuge");
+
+        Integer res = dao.insert(activity);
+        sqlSession.commit();
+
+        logger.info("result：count：{} idx：{}", res, JSON.toJSONString(activity.getId()));
+    }
+
+    @Test
+    public void test_insert_select() throws IOException {
+        Reader reader = Resources.getResourceAsReader("mybatis-config-datasource.xml");
+        XMLConfigBuilder xmlConfigBuilder = new XMLConfigBuilder(reader);
+        Configuration configuration = xmlConfigBuilder.parse();
+
+        final Environment environment = configuration.getEnvironment();
+        TransactionFactory transactionFactory = environment.getTransactionFactory();
+        Transaction tx = transactionFactory.newTransaction(configuration.getEnvironment().getDataSource(), TransactionIsolationLevel.READ_COMMITTED, false);
+
+        final Executor executor = configuration.newExecutor(tx);
+        SqlSession sqlSession = new DefaultSqlSession(configuration, executor);
+
+        Activity activity = new Activity();
+        activity.setActivityId(10005L);
+        activity.setActivityName("test");
+        activity.setActivityDesc("test insert");
+        activity.setCreator("xiaofuge");
+        int res = sqlSession.insert("io.ronghuiye.mybatis.test.dao.IActivityDao.insert", activity);
+
+        Object obj = sqlSession.selectOne("io.ronghuiye.mybatis.test.dao.IActivityDao.insert!selectKey");
+        logger.info("result：count：{} idx：{}", res, JSON.toJSONString(obj));
+
+        sqlSession.commit();
     }
 
 }

@@ -6,6 +6,7 @@ import io.ronghuiye.mybatis.datasource.pooled.PooledDataSourceFactory;
 import io.ronghuiye.mybatis.datasource.unpooled.UnpooledDataSourceFactory;
 import io.ronghuiye.mybatis.executor.Executor;
 import io.ronghuiye.mybatis.executor.SimpleExecutor;
+import io.ronghuiye.mybatis.executor.keygen.KeyGenerator;
 import io.ronghuiye.mybatis.executor.parameter.ParameterHandler;
 import io.ronghuiye.mybatis.executor.resultset.DefaultResultSetHandler;
 import io.ronghuiye.mybatis.executor.resultset.ResultSetHandler;
@@ -35,12 +36,14 @@ import java.util.Set;
 
 public class Configuration {
 
+    protected boolean useGeneratedKeys = false;
     protected Environment environment;
 
     protected MapperRegistry mapperRegistry = new MapperRegistry(this);
 
     protected final Map<String, MappedStatement> mappedStatements = new HashMap<>();
     protected final Map<String, ResultMap> resultMaps = new HashMap<>();
+    protected final Map<String, KeyGenerator> keyGenerators = new HashMap<>();
 
     protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
     protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
@@ -153,5 +156,25 @@ public class Configuration {
 
     public void addResultMap(ResultMap resultMap) {
         resultMaps.put(resultMap.getId(), resultMap);
+    }
+
+    public void addKeyGenerator(String id, KeyGenerator keyGenerator) {
+        keyGenerators.put(id, keyGenerator);
+    }
+
+    public KeyGenerator getKeyGenerator(String id) {
+        return keyGenerators.get(id);
+    }
+
+    public boolean hasKeyGenerator(String id) {
+        return keyGenerators.containsKey(id);
+    }
+
+    public boolean isUseGeneratedKeys() {
+        return useGeneratedKeys;
+    }
+
+    public void setUseGeneratedKeys(boolean useGeneratedKeys) {
+        this.useGeneratedKeys = useGeneratedKeys;
     }
 }

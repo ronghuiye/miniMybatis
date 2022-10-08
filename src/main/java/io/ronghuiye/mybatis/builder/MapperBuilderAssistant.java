@@ -1,5 +1,6 @@
 package io.ronghuiye.mybatis.builder;
 
+import io.ronghuiye.mybatis.executor.keygen.KeyGenerator;
 import io.ronghuiye.mybatis.mapping.*;
 import io.ronghuiye.mybatis.reflection.MetaClass;
 import io.ronghuiye.mybatis.scripting.LanguageDriver;
@@ -83,10 +84,15 @@ public class MapperBuilderAssistant extends BaseBuilder {
             Class<?> parameterType,
             String resultMap,
             Class<?> resultType,
+            KeyGenerator keyGenerator,
+            String keyProperty,
             LanguageDriver lang
     ) {
         id = applyCurrentNamespace(id, false);
         MappedStatement.Builder statementBuilder = new MappedStatement.Builder(configuration, id, sqlCommandType, sqlSource, resultType);
+        statementBuilder.resource(resource);
+        statementBuilder.keyGenerator(keyGenerator);
+        statementBuilder.keyProperty(keyProperty);
 
         setStatementResultMap(resultMap, resultType, statementBuilder);
 
