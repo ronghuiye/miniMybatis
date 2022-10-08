@@ -13,6 +13,9 @@ import io.ronghuiye.mybatis.test.po.Activity;
 import io.ronghuiye.mybatis.test.po.User;
 import io.ronghuiye.mybatis.transaction.Transaction;
 import io.ronghuiye.mybatis.transaction.TransactionFactory;
+import ognl.Ognl;
+import ognl.OgnlContext;
+import ognl.OgnlException;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -26,13 +29,42 @@ public class ApiTest {
 
     private Logger logger = LoggerFactory.getLogger(ApiTest.class);
 
-    private SqlSession sqlSession;
-
-    @Before
-    public void init() throws IOException {
+    @Test
+    public void test_queryActivityById() throws IOException {
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(Resources.getResourceAsReader("mybatis-config-datasource.xml"));
-        sqlSession = sqlSessionFactory.openSession();
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        IActivityDao dao = sqlSession.getMapper(IActivityDao.class);
+        Activity req = new Activity();
+        req.setActivityId(100001L);
+        Activity res = dao.queryActivityById(req);
+        logger.info("result：{}", JSON.toJSONString(res));
     }
+
+    @Test
+    public void test_ognl() throws OgnlException {
+        Activity req = new Activity();
+        req.setActivityId(1L);
+        req.setActivityName("test");
+        req.setActivityDesc("test desc");
+
+        OgnlContext context = new OgnlContext();
+        context.setRoot(req);
+        Object root = context.getRoot();
+
+        Object activityName = Ognl.getValue("activityName", context, root);
+        Object activityDesc = Ognl.getValue("activityDesc", context, root);
+        Object value = Ognl.getValue("activityDesc.length()", context, root);
+
+        System.out.println(activityName + "\t" + activityDesc + " length：" + value);
+    }
+
+//    private SqlSession sqlSession;
+//
+//    @Before
+//    public void init() throws IOException {
+//        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(Resources.getResourceAsReader("mybatis-config-datasource.xml"));
+//        sqlSession = sqlSessionFactory.openSession();
+//    }
 
 //    @Test
 //    public void test_insertUserInfo() {
@@ -95,53 +127,53 @@ public class ApiTest {
 //        logger.info("result：{}", JSON.toJSONString(users));
 //    }
 
-    @Test
-    public void test_queryActivityById(){
-        IActivityDao dao = sqlSession.getMapper(IActivityDao.class);
-        Activity res = dao.queryActivityById(100001L);
-        logger.info("result：{}", JSON.toJSONString(res));
-    }
-
-    @Test
-    public void test_insert() {
-        IActivityDao dao = sqlSession.getMapper(IActivityDao.class);
-
-        Activity activity = new Activity();
-        activity.setActivityId(10004L);
-        activity.setActivityName("test");
-        activity.setActivityDesc("test insert");
-        activity.setCreator("xiaofuge");
-
-        Integer res = dao.insert(activity);
-        sqlSession.commit();
-
-        logger.info("result：count：{} idx：{}", res, JSON.toJSONString(activity.getId()));
-    }
-
-    @Test
-    public void test_insert_select() throws IOException {
-        Reader reader = Resources.getResourceAsReader("mybatis-config-datasource.xml");
-        XMLConfigBuilder xmlConfigBuilder = new XMLConfigBuilder(reader);
-        Configuration configuration = xmlConfigBuilder.parse();
-
-        final Environment environment = configuration.getEnvironment();
-        TransactionFactory transactionFactory = environment.getTransactionFactory();
-        Transaction tx = transactionFactory.newTransaction(configuration.getEnvironment().getDataSource(), TransactionIsolationLevel.READ_COMMITTED, false);
-
-        final Executor executor = configuration.newExecutor(tx);
-        SqlSession sqlSession = new DefaultSqlSession(configuration, executor);
-
-        Activity activity = new Activity();
-        activity.setActivityId(10005L);
-        activity.setActivityName("test");
-        activity.setActivityDesc("test insert");
-        activity.setCreator("xiaofuge");
-        int res = sqlSession.insert("io.ronghuiye.mybatis.test.dao.IActivityDao.insert", activity);
-
-        Object obj = sqlSession.selectOne("io.ronghuiye.mybatis.test.dao.IActivityDao.insert!selectKey");
-        logger.info("result：count：{} idx：{}", res, JSON.toJSONString(obj));
-
-        sqlSession.commit();
-    }
+//    @Test
+//    public void test_queryActivityById(){
+//        IActivityDao dao = sqlSession.getMapper(IActivityDao.class);
+//        Activity res = dao.queryActivityById(100001L);
+//        logger.info("result：{}", JSON.toJSONString(res));
+//    }
+//
+//    @Test
+//    public void test_insert() {
+//        IActivityDao dao = sqlSession.getMapper(IActivityDao.class);
+//
+//        Activity activity = new Activity();
+//        activity.setActivityId(10004L);
+//        activity.setActivityName("test");
+//        activity.setActivityDesc("test insert");
+//        activity.setCreator("xiaofuge");
+//
+//        Integer res = dao.insert(activity);
+//        sqlSession.commit();
+//
+//        logger.info("result：count：{} idx：{}", res, JSON.toJSONString(activity.getId()));
+//    }
+//
+//    @Test
+//    public void test_insert_select() throws IOException {
+//        Reader reader = Resources.getResourceAsReader("mybatis-config-datasource.xml");
+//        XMLConfigBuilder xmlConfigBuilder = new XMLConfigBuilder(reader);
+//        Configuration configuration = xmlConfigBuilder.parse();
+//
+//        final Environment environment = configuration.getEnvironment();
+//        TransactionFactory transactionFactory = environment.getTransactionFactory();
+//        Transaction tx = transactionFactory.newTransaction(configuration.getEnvironment().getDataSource(), TransactionIsolationLevel.READ_COMMITTED, false);
+//
+//        final Executor executor = configuration.newExecutor(tx);
+//        SqlSession sqlSession = new DefaultSqlSession(configuration, executor);
+//
+//        Activity activity = new Activity();
+//        activity.setActivityId(10005L);
+//        activity.setActivityName("test");
+//        activity.setActivityDesc("test insert");
+//        activity.setCreator("xiaofuge");
+//        int res = sqlSession.insert("io.ronghuiye.mybatis.test.dao.IActivityDao.insert", activity);
+//
+//        Object obj = sqlSession.selectOne("io.ronghuiye.mybatis.test.dao.IActivityDao.insert!selectKey");
+//        logger.info("result：count：{} idx：{}", res, JSON.toJSONString(obj));
+//
+//        sqlSession.commit();
+//    }
 
 }

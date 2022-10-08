@@ -5,7 +5,8 @@ import io.ronghuiye.mybatis.test.po.Activity;
 
 public interface IActivityDao {
 
-    Activity queryActivityById(Long activityId);
+    Activity queryActivityById(Activity activityId);
+//    Activity queryActivityById(Long activityId);
 
-    Integer insert(Activity activity);
+//    Integer insert(Activity activity);
 }
