@@ -7,6 +7,7 @@ import io.ronghuiye.mybatis.mapping.BoundSql;
 import io.ronghuiye.mybatis.mapping.Environment;
 import io.ronghuiye.mybatis.mapping.MappedStatement;
 import io.ronghuiye.mybatis.mapping.SqlCommandType;
+import io.ronghuiye.mybatis.plugin.Interceptor;
 import io.ronghuiye.mybatis.session.Configuration;
 import io.ronghuiye.mybatis.transaction.TransactionFactory;
 import org.dom4j.Document;
@@ -39,6 +40,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 
     public Configuration parse() {
         try {
+            pluginElement(root.element("plugins"));
             environmentsElement(root.element("environments"));
             // 解析映射器
             mapperElement(root.element("mappers"));
@@ -46,6 +48,23 @@ public class XMLConfigBuilder extends BaseBuilder {
             throw new RuntimeException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
         }
         return configuration;
+    }
+
+    private void pluginElement(Element parent) throws Exception {
+        if (parent == null) return;
+        List<Element> elements = parent.elements();
+        for (Element element : elements) {
+            String interceptor = element.attributeValue("interceptor");
+            Properties properties = new Properties();
+            List<Element> propertyElementList = element.elements("property");
+            for (Element property : propertyElementList) {
+                properties.setProperty(property.attributeValue("name"), property.attributeValue("value"));
+            }
+            Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).newInstance();
+            interceptorInstance.setProperties(properties);
+            configuration.addInterceptor(interceptorInstance);
+        }
+
     }
 
     private void environmentsElement(Element context) throws Exception {

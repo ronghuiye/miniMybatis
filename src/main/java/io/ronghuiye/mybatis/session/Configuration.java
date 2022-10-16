@@ -16,6 +16,8 @@ import io.ronghuiye.mybatis.mapping.BoundSql;
 import io.ronghuiye.mybatis.mapping.Environment;
 import io.ronghuiye.mybatis.mapping.MappedStatement;
 import io.ronghuiye.mybatis.mapping.ResultMap;
+import io.ronghuiye.mybatis.plugin.Interceptor;
+import io.ronghuiye.mybatis.plugin.InterceptorChain;
 import io.ronghuiye.mybatis.reflection.MetaObject;
 import io.ronghuiye.mybatis.reflection.factory.DefaultObjectFactory;
 import io.ronghuiye.mybatis.reflection.factory.ObjectFactory;
@@ -44,6 +46,8 @@ public class Configuration {
     protected final Map<String, MappedStatement> mappedStatements = new HashMap<>();
     protected final Map<String, ResultMap> resultMaps = new HashMap<>();
     protected final Map<String, KeyGenerator> keyGenerators = new HashMap<>();
+
+    protected final InterceptorChain interceptorChain = new InterceptorChain();
 
     protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
     protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
@@ -110,7 +114,9 @@ public class Configuration {
     }
 
     public StatementHandler newStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
-        return new PreparedStatementHandler(executor, mappedStatement, parameter, rowBounds, resultHandler, boundSql);
+        StatementHandler statementHandler = new PreparedStatementHandler(executor, mappedStatement, parameter, rowBounds, resultHandler, boundSql);
+        statementHandler = (StatementHandler) interceptorChain.pluginAll(statementHandler);
+        return statementHandler;
     }
 
     public String getDatabaseId() {
@@ -176,5 +182,9 @@ public class Configuration {
 
     public void setUseGeneratedKeys(boolean useGeneratedKeys) {
         this.useGeneratedKeys = useGeneratedKeys;
+    }
+
+    public void addInterceptor(Interceptor interceptor) {
+        interceptorChain.addInterceptor(interceptor);
     }
 }

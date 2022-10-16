@@ -40,23 +40,23 @@ public class ApiTest {
         logger.info("result：{}", JSON.toJSONString(res));
     }
 
-    @Test
-    public void test_ognl() throws OgnlException {
-        Activity req = new Activity();
-        req.setActivityId(1L);
-        req.setActivityName("test");
-        req.setActivityDesc("test desc");
-
-        OgnlContext context = new OgnlContext();
-        context.setRoot(req);
-        Object root = context.getRoot();
-
-        Object activityName = Ognl.getValue("activityName", context, root);
-        Object activityDesc = Ognl.getValue("activityDesc", context, root);
-        Object value = Ognl.getValue("activityDesc.length()", context, root);
-
-        System.out.println(activityName + "\t" + activityDesc + " length：" + value);
-    }
+//    @Test
+//    public void test_ognl() throws OgnlException {
+//        Activity req = new Activity();
+//        req.setActivityId(1L);
+//        req.setActivityName("test");
+//        req.setActivityDesc("test desc");
+//
+//        OgnlContext context = new OgnlContext();
+//        context.setRoot(req);
+//        Object root = context.getRoot();
+//
+//        Object activityName = Ognl.getValue("activityName", context, root);
+//        Object activityDesc = Ognl.getValue("activityDesc", context, root);
+//        Object value = Ognl.getValue("activityDesc.length()", context, root);
+//
+//        System.out.println(activityName + "\t" + activityDesc + " length：" + value);
+//    }
 
 //    private SqlSession sqlSession;
 //
