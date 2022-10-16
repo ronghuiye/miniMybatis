@@ -31,13 +31,22 @@ public class ApiTest {
 
     @Test
     public void test_queryActivityById() throws IOException {
-        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(Resources.getResourceAsReader("mybatis-config-datasource.xml"));
-        SqlSession sqlSession = sqlSessionFactory.openSession();
-        IActivityDao dao = sqlSession.getMapper(IActivityDao.class);
+        Reader reader = Resources.getResourceAsReader("mybatis-config-datasource.xml");
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(reader);
+
         Activity req = new Activity();
         req.setActivityId(100001L);
-        Activity res = dao.queryActivityById(req);
-        logger.info("result：{}", JSON.toJSONString(res));
+
+        SqlSession sqlSession01 = sqlSessionFactory.openSession();
+
+        IActivityDao dao01 = sqlSession01.getMapper(IActivityDao.class);
+        logger.info("result01：{}", JSON.toJSONString(dao01.queryActivityById(req)));
+        sqlSession01.close();
+
+        SqlSession sqlSession02 = sqlSessionFactory.openSession();
+        IActivityDao dao02 = sqlSession02.getMapper(IActivityDao.class);
+        logger.info("result02：{}", JSON.toJSONString(dao02.queryActivityById(req)));
+        sqlSession02.close();
     }
 
 //    @Test

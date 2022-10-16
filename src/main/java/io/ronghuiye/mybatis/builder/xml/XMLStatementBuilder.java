@@ -38,6 +38,10 @@ public class XMLStatementBuilder extends BaseBuilder {
         String nodeName = element.getName();
         SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
 
+        boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
+        boolean flushCache = Boolean.parseBoolean(element.attributeValue("flushCache", String.valueOf(!isSelect)));
+        boolean useCache = Boolean.parseBoolean(element.attributeValue("useCache", String.valueOf(!isSelect)));
+
         Class<?> langClass = configuration.getLanguageRegistry().getDefaultDriverClass();
         LanguageDriver langDriver = configuration.getLanguageRegistry().getDriver(langClass);
 
@@ -63,6 +67,8 @@ public class XMLStatementBuilder extends BaseBuilder {
                 parameterTypeClass,
                 resultMap,
                 resultTypeClass,
+                flushCache,
+                useCache,
                 keyGenerator,
                 keyProperty,
                 langDriver);
@@ -88,6 +94,8 @@ public class XMLStatementBuilder extends BaseBuilder {
         String keyProperty = nodeToHandle.attributeValue("keyProperty");
 
         String resultMap = null;
+        boolean flushCache = false;
+        boolean useCache = false;
         KeyGenerator keyGenerator = new NoKeyGenerator();
 
         SqlSource sqlSource = langDriver.createSqlSource(configuration, nodeToHandle, parameterTypeClass);
@@ -99,6 +107,8 @@ public class XMLStatementBuilder extends BaseBuilder {
                 parameterTypeClass,
                 resultMap,
                 resultTypeClass,
+                flushCache,
+                useCache,
                 keyGenerator,
                 keyProperty,
                 langDriver);

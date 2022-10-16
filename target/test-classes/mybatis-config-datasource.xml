@@ -11,7 +11,8 @@
         </plugin>
     </plugins>
     <settings>
-        <setting name="localCacheScope" value="SESSION"/>
+        <setting name="cacheEnabled" value="true"/>
+        <setting name="localCacheScope" value="STATEMENT"/>
     </settings>
     <environments default="development">
         <environment id="development">

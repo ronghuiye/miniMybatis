@@ -169,6 +169,11 @@ public abstract class BaseExecutor implements Executor{
     }
 
     @Override
+    public void setExecutorWrapper(Executor executor) {
+        this.wrapper = wrapper;
+    }
+
+    @Override
     public void close(boolean forceRollback) {
         try {
             try {
@@ -180,6 +185,7 @@ public abstract class BaseExecutor implements Executor{
             logger.warn("Unexpected exception on closing transaction.  Cause: " + e);
         } finally {
             transaction = null;
+            localCache = null;
             closed = true;
         }
     }

@@ -3,6 +3,7 @@ package io.ronghuiye.mybatis.builder.xml;
 import io.ronghuiye.mybatis.builder.MapperBuilderAssistant;
 import io.ronghuiye.mybatis.builder.BaseBuilder;
 import io.ronghuiye.mybatis.builder.ResultMapResolver;
+import io.ronghuiye.mybatis.cache.Cache;
 import io.ronghuiye.mybatis.io.Resources;
 import io.ronghuiye.mybatis.mapping.ResultFlag;
 import io.ronghuiye.mybatis.mapping.ResultMap;
@@ -17,6 +18,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 public class XMLMapperBuilder extends BaseBuilder {
     private Element element;
@@ -49,6 +51,8 @@ public class XMLMapperBuilder extends BaseBuilder {
         }
         builderAssistant.setCurrentNamespace(namespace);
 
+        cacheElement(element.element("cache"));
+
         resultMapElements(element.elements("resultMap"));
 
         buildStatementFromContext(element.elements("select"),
@@ -56,6 +60,29 @@ public class XMLMapperBuilder extends BaseBuilder {
                 element.elements("update"),
                 element.elements("delete")
                 );
+    }
+
+    private void cacheElement(Element context) {
+        if (context == null) return;
+        // 基础配置信息
+        String type = context.attributeValue("type", "PERPETUAL");
+        Class<? extends Cache> typeClass = typeAliasRegistry.resolveAlias(type);
+        // 缓存队列 FIFO
+        String eviction = context.attributeValue("eviction", "FIFO");
+        Class<? extends Cache> evictionClass = typeAliasRegistry.resolveAlias(eviction);
+        Long flushInterval = Long.valueOf(context.attributeValue("flushInterval"));
+        Integer size = Integer.valueOf(context.attributeValue("size"));
+        boolean readWrite = !Boolean.parseBoolean(context.attributeValue("readOnly", "false"));
+        boolean blocking = !Boolean.parseBoolean(context.attributeValue("blocking", "false"));
+
+        // 解析额外属性信息；<property name="cacheFile" value="/tmp/xxx-cache.tmp"/>
+        List<Element> elements = context.elements();
+        Properties props = new Properties();
+        for (Element element : elements) {
+            props.setProperty(element.attributeValue("name"), element.attributeValue("value"));
+        }
+        // 构建缓存
+        builderAssistant.useNewCache(typeClass, evictionClass, flushInterval, size, readWrite, blocking, props);
     }
 
     private void resultMapElements(List<Element> list) {

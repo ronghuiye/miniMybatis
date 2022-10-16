@@ -1,9 +1,13 @@
 package io.ronghuiye.mybatis.session;
 
 import io.ronghuiye.mybatis.binding.MapperRegistry;
+import io.ronghuiye.mybatis.cache.Cache;
+import io.ronghuiye.mybatis.cache.decorators.FifoCache;
+import io.ronghuiye.mybatis.cache.impl.PerpetualCache;
 import io.ronghuiye.mybatis.datasource.druid.DruidDataSourceFactory;
 import io.ronghuiye.mybatis.datasource.pooled.PooledDataSourceFactory;
 import io.ronghuiye.mybatis.datasource.unpooled.UnpooledDataSourceFactory;
+import io.ronghuiye.mybatis.executor.CachingExecutor;
 import io.ronghuiye.mybatis.executor.Executor;
 import io.ronghuiye.mybatis.executor.SimpleExecutor;
 import io.ronghuiye.mybatis.executor.keygen.KeyGenerator;
@@ -41,6 +45,8 @@ public class Configuration {
     protected boolean useGeneratedKeys = false;
     protected Environment environment;
 
+    protected boolean cacheEnabled = true;
+
     protected LocalCacheScope localCacheScope = LocalCacheScope.SESSION;
 
     protected MapperRegistry mapperRegistry = new MapperRegistry(this);
@@ -48,6 +54,7 @@ public class Configuration {
     protected final Map<String, MappedStatement> mappedStatements = new HashMap<>();
     protected final Map<String, ResultMap> resultMaps = new HashMap<>();
     protected final Map<String, KeyGenerator> keyGenerators = new HashMap<>();
+    protected final Map<String, Cache> caches = new HashMap<>();
 
     protected final InterceptorChain interceptorChain = new InterceptorChain();
 
@@ -68,6 +75,8 @@ public class Configuration {
         typeAliasRegistry.registerAlias("DRUID", DruidDataSourceFactory.class);
         typeAliasRegistry.registerAlias("UNPOOLED", UnpooledDataSourceFactory.class);
         typeAliasRegistry.registerAlias("POOLED", PooledDataSourceFactory.class);
+        typeAliasRegistry.registerAlias("PERPETUAL", PerpetualCache.class);
+        typeAliasRegistry.registerAlias("FIFO", FifoCache.class);
         languageRegistry.setDefaultDriverClass(XMLLanguageDriver.class);
     }
 
@@ -112,7 +121,11 @@ public class Configuration {
     }
 
     public Executor newExecutor(Transaction transaction) {
-        return new SimpleExecutor(this, transaction);
+        Executor executor = new SimpleExecutor(this, transaction);
+        if (cacheEnabled) {
+            executor = new CachingExecutor(executor);
+        }
+        return executor;
     }
 
     public StatementHandler newStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
@@ -196,5 +209,21 @@ public class Configuration {
 
     public void setLocalCacheScope(LocalCacheScope localCacheScope) {
         this.localCacheScope = localCacheScope;
+    }
+
+    public boolean isCacheEnabled() {
+        return cacheEnabled;
+    }
+
+    public void setCacheEnabled(boolean cacheEnabled) {
+        this.cacheEnabled = cacheEnabled;
+    }
+
+    public void addCache(Cache cache) {
+        caches.put(cache.getId(), cache);
+    }
+
+    public Cache getCache(String id) {
+        return caches.get(id);
     }
 }
