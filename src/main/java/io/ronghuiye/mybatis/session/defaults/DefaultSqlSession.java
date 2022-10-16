@@ -52,7 +52,7 @@ public class DefaultSqlSession implements SqlSession {
         logger.info("statement: {} parameter:{}", statement, JSON.toJSONString(parameter));
         MappedStatement ms = configuration.getMappedStatement(statement);
         try {
-            return executor.query(ms, parameter, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER, ms.getSqlSource().getBoundSql(parameter));
+            return executor.query(ms, parameter, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER);
         } catch (SQLException e) {
             throw new RuntimeException("Error querying.  Cause: " + e);
         }
@@ -114,6 +114,16 @@ public class DefaultSqlSession implements SqlSession {
             throwables.printStackTrace();
         }
         return list;
+    }
+
+    @Override
+    public void close() {
+        executor.close(true);
+    }
+
+    @Override
+    public void clearCache() {
+        executor.clearLocalCache();
     }
 
     @Override

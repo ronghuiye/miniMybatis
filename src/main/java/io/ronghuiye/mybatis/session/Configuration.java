@@ -41,6 +41,8 @@ public class Configuration {
     protected boolean useGeneratedKeys = false;
     protected Environment environment;
 
+    protected LocalCacheScope localCacheScope = LocalCacheScope.SESSION;
+
     protected MapperRegistry mapperRegistry = new MapperRegistry(this);
 
     protected final Map<String, MappedStatement> mappedStatements = new HashMap<>();
@@ -186,5 +188,13 @@ public class Configuration {
 
     public void addInterceptor(Interceptor interceptor) {
         interceptorChain.addInterceptor(interceptor);
+    }
+
+    public LocalCacheScope getLocalCacheScope() {
+        return localCacheScope;
+    }
+
+    public void setLocalCacheScope(LocalCacheScope localCacheScope) {
+        this.localCacheScope = localCacheScope;
     }
 }

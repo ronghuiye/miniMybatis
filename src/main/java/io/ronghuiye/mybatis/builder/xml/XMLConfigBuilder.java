@@ -9,6 +9,7 @@ import io.ronghuiye.mybatis.mapping.MappedStatement;
 import io.ronghuiye.mybatis.mapping.SqlCommandType;
 import io.ronghuiye.mybatis.plugin.Interceptor;
 import io.ronghuiye.mybatis.session.Configuration;
+import io.ronghuiye.mybatis.session.LocalCacheScope;
 import io.ronghuiye.mybatis.transaction.TransactionFactory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -41,6 +42,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     public Configuration parse() {
         try {
             pluginElement(root.element("plugins"));
+            settingsElement(root.element("settings"));
             environmentsElement(root.element("environments"));
             // 解析映射器
             mapperElement(root.element("mappers"));
@@ -65,6 +67,16 @@ public class XMLConfigBuilder extends BaseBuilder {
             configuration.addInterceptor(interceptorInstance);
         }
 
+    }
+
+    private void settingsElement(Element context) {
+        if (context == null) return;
+        List<Element> elements = context.elements();
+        Properties props = new Properties();
+        for (Element element : elements) {
+            props.setProperty(element.attributeValue("name"), element.attributeValue("value"));
+        }
+        configuration.setLocalCacheScope(LocalCacheScope.valueOf(props.getProperty("localCacheScope")));
     }
 
     private void environmentsElement(Element context) throws Exception {

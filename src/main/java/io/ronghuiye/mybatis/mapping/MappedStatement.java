@@ -21,6 +21,7 @@ public class MappedStatement {
     Class<?> resultType;
     private LanguageDriver lang;
     private List<ResultMap> resultMaps;
+    private boolean flushCacheRequired;
 
     private KeyGenerator keyGenerator;
     private String[] keyProperties;
@@ -142,5 +143,9 @@ public class MappedStatement {
 
     public List<ResultMap> getResultMaps() {
         return resultMaps;
+    }
+
+    public boolean isFlushCacheRequired() {
+        return flushCacheRequired;
     }
 }

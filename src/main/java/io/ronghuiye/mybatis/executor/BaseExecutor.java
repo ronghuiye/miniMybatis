@@ -1,11 +1,17 @@
 package io.ronghuiye.mybatis.executor;
 
+import io.ronghuiye.mybatis.cache.CacheKey;
+import io.ronghuiye.mybatis.cache.impl.PerpetualCache;
 import io.ronghuiye.mybatis.mapping.BoundSql;
 import io.ronghuiye.mybatis.mapping.MappedStatement;
+import io.ronghuiye.mybatis.mapping.ParameterMapping;
+import io.ronghuiye.mybatis.reflection.MetaObject;
 import io.ronghuiye.mybatis.session.Configuration;
+import io.ronghuiye.mybatis.session.LocalCacheScope;
 import io.ronghuiye.mybatis.session.ResultHandler;
 import io.ronghuiye.mybatis.session.RowBounds;
 import io.ronghuiye.mybatis.transaction.Transaction;
+import io.ronghuiye.mybatis.type.TypeHandlerRegistry;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
@@ -20,30 +26,70 @@ public abstract class BaseExecutor implements Executor{
     protected Transaction transaction;
     protected Executor wrapper;
 
+    protected PerpetualCache localCache;
+
     private boolean closed;
+
+    protected int queryStack = 0;
 
     public BaseExecutor(Configuration configuration, Transaction transaction) {
         this.configuration = configuration;
         this.transaction = transaction;
         this.wrapper = this;
+        this.localCache = new PerpetualCache("LocalCache");
     }
 
     public int update(MappedStatement ms, Object parameter) throws SQLException {
+        if (closed) {
+            throw new RuntimeException("Executor was closed.");
+        }
+        clearLocalCache();
         return doUpdate(ms, parameter);
     }
 
     @Override
-    public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) throws SQLException{
+    public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException{
         if (closed) {
             throw new RuntimeException("Error");
         }
-        return doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
+        if (queryStack == 0 && ms.isFlushCacheRequired()) {
+            clearLocalCache();
+        }
+        List<E> list;
+        try {
+            queryStack++;
+            list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
+            if (list == null) {
+                list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
+            }
+        } finally {
+            queryStack--;
+        }
+        if (queryStack == 0) {
+            if (configuration.getLocalCacheScope() == LocalCacheScope.STATEMENT) {
+                clearLocalCache();
+            }
+        }
+        return list;
+    }
+
+    private <E> List<E> queryFromDatabase(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
+        List<E> list;
+        localCache.putObject(key, ExecutionPlaceholder.EXECUTION_PLACEHOLDER);
+        try {
+            list = doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
+        } finally {
+            localCache.removeObject(key);
+        }
+        localCache.putObject(key, list);
+        return list;
     }
 
     @Override
     public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
         BoundSql boundSql = ms.getBoundSql(parameter);
-        return query(ms, parameter, rowBounds, resultHandler, boundSql);
+        CacheKey key = createCacheKey(ms, parameter, rowBounds, boundSql);
+        return query(ms, parameter, rowBounds, resultHandler, key, boundSql);
     }
 
     protected abstract int doUpdate(MappedStatement ms, Object parameter) throws SQLException;
@@ -63,6 +109,7 @@ public abstract class BaseExecutor implements Executor{
         if (closed) {
             throw new RuntimeException("Cannot commit, transaction is already closed");
         }
+        clearLocalCache();
         if (required) {
             transaction.commit();
         }
@@ -71,10 +118,54 @@ public abstract class BaseExecutor implements Executor{
     @Override
     public void rollback(boolean required) throws SQLException {
         if (!closed) {
-            if (required) {
-                transaction.rollback();
+            try {
+                clearLocalCache();
+            } finally {
+                if (required) {
+                    transaction.rollback();
+                }
             }
         }
+    }
+
+    @Override
+    public void clearLocalCache() {
+        if (!closed) {
+            localCache.clear();
+        }
+    }
+
+    @Override
+    public CacheKey createCacheKey(MappedStatement ms, Object parameterObject, RowBounds rowBounds, BoundSql boundSql) {
+        if (closed) {
+            throw new RuntimeException("Executor was closed.");
+        }
+        CacheKey cacheKey = new CacheKey();
+        cacheKey.update(ms.getId());
+        cacheKey.update(rowBounds.getOffset());
+        cacheKey.update(rowBounds.getLimit());
+        cacheKey.update(boundSql.getSql());
+        List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
+        TypeHandlerRegistry typeHandlerRegistry = ms.getConfiguration().getTypeHandlerRegistry();
+        for (ParameterMapping parameterMapping : parameterMappings) {
+            Object value;
+            String propertyName = parameterMapping.getProperty();
+            if (boundSql.hasAdditionalParameter(propertyName)) {
+                value = boundSql.getAdditionalParameter(propertyName);
+            } else if (parameterObject == null) {
+                value = null;
+            } else if (typeHandlerRegistry.hasTypeHandler(parameterObject.getClass())) {
+                value = parameterObject;
+            } else {
+                MetaObject metaObject = configuration.newMetaObject(parameterObject);
+                value = metaObject.getValue(propertyName);
+            }
+            cacheKey.update(value);
+        }
+        if (configuration.getEnvironment() != null) {
+            cacheKey.update(configuration.getEnvironment().getId());
+        }
+        return cacheKey;
     }
 
     @Override
